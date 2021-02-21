@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { GraphQLClient } from 'graphql-request'
 
-import { Link } from 'react-router-dom'
+import { Link as _Link } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { ME } from '../utils/queries'
+
+interface IStyledProps {
+  left?: string
+  right?: string
+}
 
 const Bar = styled.div`
   font-size: 20px;
@@ -15,7 +20,7 @@ const Bar = styled.div`
   height: 80px;
 `
 
-const Link_ = styled(Link)`
+const Link = styled(_Link)<IStyledProps>`
   transition: all ease-in 25ms;
   &:active {
     transform: scale(0.95) !important;
@@ -24,34 +29,18 @@ const Link_ = styled(Link)`
     transform: scale(1.05);
     color: #cccccc;
   }
+  color: #f3f2e9;
   position: absolute;
   top: 27.5px;
-  color: #f3f2e9;
-`
-
-const HomeLink = styled(Link_)`
-  left: 25px;
-`
-
-const RegisterLink = styled(Link_)`
-  right: 125px;
-`
-
-const LoginLink = styled(Link_)`
-  right: 25px;
-`
-
-const LogoutLink = styled(Link_)`
-  right: 25px;
+  left: ${(props) => props.left && props.left};
+  right: ${(props) => props.right && props.right};
 `
 
 const Navbar: React.FC = () => {
   const [userState, setUserState] = useState('LOGGED_OUT')
 
-  console.log(userState)
-
   useEffect(() => {
-    ;(async () => {
+    const init = async () => {
       const storage = localStorage.getItem('user')
 
       if (!storage) return setUserState('LOGGED_OUT')
@@ -71,18 +60,28 @@ const Navbar: React.FC = () => {
       } catch (error) {
         return
       }
-    })()
-  }, [])
+    }
+
+    init()
+  }, [userState])
 
   return (
     <Bar>
-      <HomeLink to="/">Home</HomeLink>
+      <Link left="25px" to="/">
+        Home
+      </Link>
       {userState === 'LOGGED_IN' ? (
-        <LogoutLink to="/logout">Logout</LogoutLink>
+        <Link right="25px" to="/logout">
+          Logout
+        </Link>
       ) : (
         <>
-          <RegisterLink to="/register">Register</RegisterLink>
-          <LoginLink to="/login">Login</LoginLink>
+          <Link right="125px" to="/register">
+            Register
+          </Link>
+          <Link right="25px" to="/login">
+            Login
+          </Link>
         </>
       )}
     </Bar>
