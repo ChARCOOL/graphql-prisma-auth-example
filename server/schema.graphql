@@ -2,24 +2,30 @@
 ### Do not make changes to this file directly
 
 
+type AccessToken {
+  accessToken: String!
+}
+
 type AuthPayload {
-  token: String!
+  accessToken: String!
   user: User!
 }
 
 type Mutation {
   createUser(data: UserCreateInput!): User!
   login(email: String!, password: String!): AuthPayload!
+  renewAccessToken(token: String!): AccessToken!
 }
 
 type Query {
-  me: User
+  me: User!
 }
 
 type User {
   email: String!
   id: ID!
   password: String!
+  refreshToken: String
   username: String!
 }
 

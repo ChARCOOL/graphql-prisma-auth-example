@@ -13,7 +13,7 @@ export const getUserId = (context: Context) => {
   if (Authorization) {
     const token = Authorization.replace('Bearer ', '')
 
-    const { id } = verify(token, process.env.JWT_SECRET!) as Token
+    const { id } = verify(token, process.env.JWT_ACCESS_SECRET!) as Token
 
     return id
   }

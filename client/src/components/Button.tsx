@@ -14,7 +14,7 @@ const Button = styled.button<Props>`
   &:active {
     transform: scale(0.9);
     transition: all ease-in 25ms;
-    box-shadow: inset 0 0 10px #000000;
+    box-shadow: inset 0 0 10px black;
   }
   &:disabled {
     cursor: not-allowed;

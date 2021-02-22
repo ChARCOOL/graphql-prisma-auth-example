@@ -99,17 +99,11 @@ const Register: React.FC = () => {
         onSubmit={async (values) => {
           setLoading(true)
 
-          const variables = {
-            username: values.username,
-            email: values.email,
-            password: values.password,
-          }
-
           try {
             await request(
               process.env.REACT_APP_API_SERVER!,
               CREATE_USER,
-              variables,
+              values,
             )
 
             setLoading(false)

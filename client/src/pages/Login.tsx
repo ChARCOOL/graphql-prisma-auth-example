@@ -1,3 +1,4 @@
+import Cookies from 'js-cookie'
 import { useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
@@ -84,22 +85,27 @@ const Register: React.FC = () => {
           setLoading(true)
 
           try {
-            const {
-              login: { token, user },
-            } = await request(process.env.REACT_APP_API_SERVER!, LOG_IN, values)
+            const { login } = await request(
+              process.env.REACT_APP_API_SERVER!,
+              LOG_IN,
+              values,
+            )
+
+            const date = new Date()
+
+            Cookies.set('refreshToken', login.user.refreshToken, {
+              expires: new Date(date.getTime() + 604800000),
+            })
+
+            Cookies.set('accessToken', login.accessToken, {
+              expires: new Date(date.getTime() + 20000),
+            })
 
             setLoading(false)
 
             setTimeout(() => {
               history.push('/')
             }, 1500)
-
-            localStorage.removeItem('user')
-
-            localStorage.setItem(
-              'user',
-              JSON.stringify({ token, ...user }, undefined, 2),
-            )
 
             return toast.success('Successfully logged in, redirecting to home!')
           } catch ({ response: { errors } }) {

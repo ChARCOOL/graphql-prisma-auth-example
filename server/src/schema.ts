@@ -9,21 +9,21 @@ import {
   inputObjectType,
 } from 'nexus'
 import { nexusPrisma } from 'nexus-plugin-prisma'
-import { compare } from 'bcryptjs'
-import { sign } from 'jsonwebtoken'
+import { sign, verify } from 'jsonwebtoken'
+import { hash, compare } from 'bcryptjs'
 import path from 'path'
 
 import { getUserId } from './utils/getUserId'
 
 const Query = queryType({
   definition(t) {
-    t.nullable.field('me', {
+    t.nonNull.field('me', {
       type: 'User',
-      resolve: async (_parent, _args, ctx) => {
+      resolve: async (_parent, _args, context) => {
         try {
-          const userId = getUserId(ctx)
+          const userId = getUserId(context)
 
-          return await ctx.prisma.user.findUnique({
+          return await context.prisma.user.findUnique({
             where: {
               id: userId,
             },
@@ -53,7 +53,8 @@ const Mutation = mutationType({
             data: {
               username: args.data.username,
               email: args.data.email,
-              password: args.data.email,
+              password: await hash(args.data.password, 10),
+              refreshToken: '',
             },
           })
 
@@ -73,33 +74,74 @@ const Mutation = mutationType({
       resolve: async (_parent, args, context) => {
         try {
           const user = await context.prisma.user.findUnique({
-            where: {
-              email: args.email,
-            },
+            where: { email: args.email },
           })
+
+          if (!user) throw new Error("Account doesn't exists!")
 
           const match = await compare(args.password, user!.password)
 
-          if (match) {
-            const token = sign(
-              {
-                id: user!.id,
-              },
-              process.env.JWT_SECRET!,
-              {
-                expiresIn: process.env.JWT_EXPIRES_IN!,
-              },
-            )
+          if (!match) throw new Error('Email or password is wrong!')
 
-            return {
-              token,
-              user,
-            }
-          } else {
-            throw new Error('Email or password is wrong.')
+          const accessToken = sign(
+            { id: user.id },
+            process.env.JWT_ACCESS_SECRET!,
+            { expiresIn: '20s' },
+          )
+
+          const refreshToken = sign(
+            { id: user.id },
+            process.env.JWT_REFRESH_SECRET!,
+            { expiresIn: '7d' },
+          )
+
+          return {
+            accessToken,
+            user: await context.prisma.user.update({
+              where: { email: args.email },
+              data: { refreshToken },
+            }),
           }
         } catch (error) {
           return error
+        }
+      },
+    })
+
+    t.nonNull.field('renewAccessToken', {
+      type: 'AccessToken',
+      args: {
+        token: nonNull(stringArg()),
+      },
+      resolve: (_parent, args, context) => {
+        try {
+          return verify(
+            args.token,
+            process.env.JWT_REFRESH_SECRET!,
+            async (err, user: any) => {
+              const tokenExists = await context.prisma.user.findFirst({
+                where: { refreshToken: args.token },
+              })
+
+              if (!tokenExists) {
+                throw new Error('User not authenticated!')
+              }
+
+              if (err) {
+                throw new Error('User not authenticated!')
+              }
+
+              const accessToken = sign(
+                { id: user!.id },
+                process.env.JWT_ACCESS_SECRET!,
+                { expiresIn: '20s' },
+              )
+
+              return { accessToken }
+            },
+          )
+        } catch (err) {
+          return err
         }
       },
     })
@@ -113,6 +155,7 @@ const User = objectType({
     t.nonNull.string('username')
     t.nonNull.string('email')
     t.nonNull.string('password')
+    t.string('refreshToken')
   },
 })
 
@@ -128,13 +171,27 @@ const UserCreateInput = inputObjectType({
 const AuthPayload = objectType({
   name: 'AuthPayload',
   definition(t) {
-    t.nonNull.string('token')
+    t.nonNull.string('accessToken')
     t.nonNull.field('user', { type: 'User' })
   },
 })
 
+const AccessToken = objectType({
+  name: 'AccessToken',
+  definition(t) {
+    t.nonNull.string('accessToken')
+  },
+})
+
 export const schema = makeSchema({
-  types: { Query, Mutation, User, UserCreateInput, AuthPayload },
+  types: {
+    Query,
+    Mutation,
+    User,
+    UserCreateInput,
+    AuthPayload,
+    AccessToken,
+  },
   plugins: [nexusPrisma()],
   outputs: {
     schema: path.join(process.cwd(), 'schema.graphql'),
