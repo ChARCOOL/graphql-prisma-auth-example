@@ -1,5 +1,13 @@
-import { Link as _Link } from 'react-router-dom'
 import styled from 'styled-components'
+
+import { useDispatch, useSelector } from 'react-redux'
+import { Link as _Link, useHistory } from 'react-router-dom'
+
+import { RootState } from '../state'
+import { AccessTokenAction, UserAction } from '../state/actions'
+import { AccessTokenActionType, UserActionType } from '../state/action-types'
+
+import Cookies from 'js-cookie'
 
 interface IStyledProps {
   left?: string
@@ -32,17 +40,44 @@ const Link = styled(_Link)<IStyledProps>`
 `
 
 const Navbar: React.FC = () => {
+  const history = useHistory()
+
+  const dispatch = useDispatch()
+
+  const { user } = useSelector((user: RootState) => user)
+
+  const logout = () => {
+    Cookies.remove('refreshToken')
+
+    dispatch<UserAction>({ type: UserActionType.LOGGED_OUT, payload: null })
+
+    dispatch<AccessTokenAction>({
+      type: AccessTokenActionType.REMOVE,
+      payload: null,
+    })
+
+    history.push('/')
+  }
+
   return (
     <Bar>
       <Link left="25px" to="/">
         Home
       </Link>
-      <Link right="125px" to="/register">
-        Register
-      </Link>
-      <Link right="25px" to="/login">
-        Login
-      </Link>
+      {user ? (
+        <Link right="25px" to="/" onClick={logout}>
+          Logout
+        </Link>
+      ) : (
+        <>
+          <Link right="125px" to="/register">
+            Register
+          </Link>
+          <Link right="25px" to="/login">
+            Login
+          </Link>
+        </>
+      )}
     </Bar>
   )
 }

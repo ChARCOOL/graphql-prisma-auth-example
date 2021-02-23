@@ -13,7 +13,6 @@ const Link = styled(_Link)`
     box-shadow: inset 0 0 10px black;
   }
 `
-
 const Home: React.FC = () => {
   return (
     <div
@@ -24,7 +23,7 @@ const Home: React.FC = () => {
         marginBottom: '250px',
       }}
     >
-      <Link to="/protected">Go to protected route!</Link>
+      <Link to="/private">Go to private route!</Link>
     </div>
   )
 }

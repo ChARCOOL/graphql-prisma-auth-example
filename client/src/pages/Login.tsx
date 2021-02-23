@@ -1,6 +1,10 @@
 import Cookies from 'js-cookie'
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useHistory } from 'react-router-dom'
+
+import { AccessTokenAction, UserAction } from '../state/actions'
+import { AccessTokenActionType, UserActionType } from '../state/action-types'
 
 import styled from 'styled-components'
 import { toast } from 'react-toastify'
@@ -69,6 +73,7 @@ const SubmitContainer = styled.div`
 
 const Register: React.FC = () => {
   const history = useHistory()
+  const dispatch = useDispatch()
 
   const [loading, setLoading] = useState<boolean>(false)
 
@@ -97,8 +102,17 @@ const Register: React.FC = () => {
               expires: new Date(date.getTime() + 604800000),
             })
 
-            Cookies.set('accessToken', login.accessToken, {
-              expires: new Date(date.getTime() + 20000),
+            dispatch<UserAction>({
+              type: UserActionType.LOGGED_IN,
+              payload: {
+                username: login.user.username,
+                email: login.user.email,
+              },
+            })
+
+            dispatch<AccessTokenAction>({
+              type: AccessTokenActionType.SET,
+              payload: login.accessToken,
             })
 
             setLoading(false)

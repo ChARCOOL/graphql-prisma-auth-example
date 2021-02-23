@@ -121,7 +121,7 @@ const Register: React.FC = () => {
             if (errors[0].extensions.exception.code === 'P2002') {
               return toast.error('User already registered!')
             } else {
-              return toast.error('Unhandled exception!')
+              return toast.error('An error occurred try again later!')
             }
           }
         }}
