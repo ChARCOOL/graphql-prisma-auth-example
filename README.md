@@ -1,4 +1,4 @@
-# graphql-prisma-auth-example
+# graphql-prisma-auth-example using typescript
 
   # Backend with prisma, graphql, nexus and apollo using JWT access token and refresh token strategy for authentication
     Using JWT for authentication and bcrypt for hashing
