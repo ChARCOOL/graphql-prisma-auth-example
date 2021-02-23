@@ -1,6 +1,6 @@
 # graphql-prisma-auth-example
 
-  # Basic backend with prisma graphql nexus apollo
+  # Backend with prisma, graphql, nexus and apollo using JWT access token and refresh token strategy for authentication
     Using JWT for authentication and bcrypt for hashing
     - 1. User register with username, email and password
     - 2. User log's in with email and password, refresh token and access token gets generated
