@@ -7,3 +7,5 @@
     - 3. Refresh and access tokens are taken from backend with graphql-request plugin
     - 4. Refresh token is stored as cookie and access token is stored in memory via redux
     - 5. When user visits protected route the access token gets renewed automatically and resaved
+
+  # Using react in frontend with redux for state managament and styled components
